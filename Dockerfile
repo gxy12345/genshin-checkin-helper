@@ -7,4 +7,6 @@ COPY genshinhelper ./genshinhelper
 
 RUN pip install --no-cache-dir -r requirements.txt
 
+CMD [ "python3", "setup.py", "install"]
+
 CMD [ "python3", "./genshincheckinhelper/main.py" ]
