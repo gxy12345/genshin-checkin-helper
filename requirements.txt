@@ -1,3 +1,2 @@
-genshinhelper
 onepush
 schedule
