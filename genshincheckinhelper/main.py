@@ -478,7 +478,7 @@ def run_once():
             del os.environ[i]
 
     gh.set_lang(config.LANGUAGE)
-    # job1()
+    job1()
     if config.COOKIE_RESIN_TIMER:
         job2()
     if config.COOKIE_RESIN_TIMER_HOYOLAB:
