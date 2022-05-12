@@ -87,8 +87,10 @@ class Genshin(Client):
         response = request('get', url, headers=get_headers(oversea=True, with_ds=True, ds_type='3', params=payload), params=payload, cookies=self.cookie)
         log.debug(response.status_code)
         log.debug(response.content)
+        if response.status_code == 403:
+            return None
         response_json = response.json()
-        if response_json['data'] is None or response.status_code == 403:
+        if response_json['data'] is None:
             return None
         data = nested_lookup(response_json, 'data', fetch_first=True)
         return data if data else response_json

@@ -57,7 +57,7 @@ class Config(object):
         value = os.environ[key] if os.environ.get(key) else self.config_json.get(key, '')
 
         default_config_dict = {
-            'LANGUAGE': 'en',
+            'LANGUAGE': 'zh',
             'RANDOM_SLEEP_SECS_RANGE': '0-300',
             'CHECK_IN_TIME': '06:00',
             'CHECK_RESIN_SECS': 900,

@@ -1,4 +1,4 @@
 import os
 
-LANGUAGE = os.environ['LANGUAGE'] if os.environ.get('LANGUAGE') else 'en'
+LANGUAGE = os.environ['LANGUAGE'] if os.environ.get('LANGUAGE') else 'zh'
 
