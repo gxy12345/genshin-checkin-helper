@@ -83,11 +83,15 @@ class Genshin(Client):
         from genshinhelper.utils import cookie_to_dict
         # cookie_str = "cookie_token=7wePs9s50rizPytKb4QzvlzJoO8DU6AUx17zsxq2; account_id=156448589"
         # self.cookie = cookie_to_dict(cookie_str)
-        response = request('get', url, headers=get_headers(oversea=True, with_ds=True, ds_type='3', params=payload), params=payload, cookies=self.cookie).json()
-        if response['data'] is None:
+        # response = request('get', url, headers=get_headers(oversea=True, with_ds=True, ds_type='3', params=payload), params=payload, cookies=self.cookie)
+        response = request('get', url, headers=get_headers(oversea=True, with_ds=True, ds_type='3', params=payload), params=payload, cookies=self.cookie)
+        log.debug(response.status_code)
+        log.debug(response.content)
+        response_json = response.json()
+        if response_json['data'] is None or response.status_code == 403:
             return None
-        data = nested_lookup(response, 'data', fetch_first=True)
-        return data if data else response
+        data = nested_lookup(response_json, 'data', fetch_first=True)
+        return data if data else response_json
 
 
 

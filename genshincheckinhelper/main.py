@@ -490,6 +490,8 @@ def main():
     schedule.every().day.at(config.CHECK_IN_TIME).do(job1)
     if config.COOKIE_RESIN_TIMER:
         schedule.every(int(config.CHECK_RESIN_SECS)).seconds.do(job2)
+    if config.COOKIE_RESIN_TIMER_HOYOLAB:
+        schedule.every(int(config.CHECK_RESIN_SECS)).seconds.do(job3)
 
     while True:
         schedule.run_pending()

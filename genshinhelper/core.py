@@ -54,7 +54,7 @@ class Client(object):
             log.info(_('Preparing to get user game roles information ...'))
             url = self.roles_info_url.format(self.game_biz)
             response = request('get', url, headers=self.headers, cookies=self.cookie).json()
-            log.info(response)
+            log.debug(response)
             if response.get('retcode') != 0:
                 raise GenshinHelperException(response.get('message'))
 
