@@ -263,6 +263,10 @@ def run_task(name, cookies, func):
 def job1():
     log.info(banner)
     random_sleep(config.RANDOM_SLEEP_SECS_RANGE)
+    log.info('Clearing notify count...')
+    for i in dict(os.environ):
+        if 'UID_' in i:
+            del os.environ[i]
     log.info('Starting...')
     finally_result_dict = {
         i['name']: run_task(i['name'], i['cookies'], i['function'])
@@ -474,7 +478,7 @@ def job3():
             is_resin_recovery_time_changed = abs(
                 float(os.environ[RESIN_LAST_RECOVERY_TIME]) - resin_recovery_datetime.timestamp()) > 400
             if daily_note['max_home_coin'] > 0:
-                is_home_money_threshold = daily_note['current_home_coin'] / daily_note['max_home_coin'] * 100 > config.HOME_MONEY_THRESHOLD
+                is_home_money_threshold = daily_note['current_home_coin'] / daily_note['max_home_coin'] * 100 > int(config.HOME_MONEY_THRESHOLD)
                 is_home_money_full = daily_note['current_home_coin'] >= daily_note['max_home_coin']
             else:
                 is_home_money_threshold = False
@@ -529,7 +533,7 @@ def run_once():
             del os.environ[i]
 
     gh.set_lang(config.LANGUAGE)
-    # job1()
+    job1()
     if config.COOKIE_RESIN_TIMER:
         job2()
     if config.COOKIE_RESIN_TIMER_HOYOLAB:
