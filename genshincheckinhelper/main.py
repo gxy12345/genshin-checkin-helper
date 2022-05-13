@@ -382,8 +382,10 @@ def job3():
         RESIN_TIMER_TEMPLATE = '''实时便笺
     🔅{nickname} {level} {region_name}
     原粹树脂: {current_resin} / {max_resin} {resin_recovery_datetime_fmt}
+    洞天宝钱: {current_home_coin} / {max_home_coin} {home_coin_recovery_datetime_fmt}
     今日委托: {finished_task_num} / {total_task_num}
     周本减半: {remain_resin_discount_num} / {resin_discount_num_limit}
+    参量质变: {transformer_fmt}
     探索派遣: {current_expedition_num} / {max_expedition_num}
       {expedition_details}'''
 
@@ -404,6 +406,28 @@ def job3():
                 details.append(expedition_fmt.format(**e))
 
             daily_note.update(i)
+            # 宝钱
+            home_coin_recovery_time = int(daily_note['home_coin_recovery_time'])
+            home_coin_recovery_datetime = datetime.datetime.now() + datetime.timedelta(seconds=home_coin_recovery_time)
+            daily_note[
+                'home_coin_recovery_datetime_fmt'] = f"将于{home_coin_recovery_datetime.strftime('%Y-%m-%d %H:%M:%S')}全部恢复" if home_coin_recovery_time else '洞天宝钱已满, 记得及时领取哦'
+            # 质变仪
+            if not daily_note['transformer']:
+                daily_note['transformer_fmt'] = '未取得参量质变仪'
+                is_transformer_ready = False
+            elif daily_note['transformer']['recovery_time']['reached']:
+                daily_note['transformer_fmt'] = '参量质变仪已可以使用'
+                is_transformer_ready = True
+            else:
+                transformer_time = daily_note['transformer']['recovery_time']
+                if transformer_time['Day'] > 0:
+                    daily_note['transformer_fmt'] = '参量质变仪恢复剩余时间: {}天'.format(
+                        transformer_time['Day'])
+                else:
+                    daily_note['transformer_fmt'] = '参量质变仪恢复剩余时间: {}小时{}分钟'.format(
+                        transformer_time['Hour'], transformer_time['Minute'])
+                is_transformer_ready = False
+
             resin_recovery_time = int(daily_note['resin_recovery_time'])
             resin_recovery_datetime = datetime.datetime.now() + datetime.timedelta(seconds=resin_recovery_time)
             daily_note[
@@ -420,12 +444,21 @@ def job3():
             count = 5
             IS_NOTIFY_STR = f"UID_{i['game_uid']}_IS_NOTIFY_STR"
             RESIN_NOTIFY_CNT_STR = f"UID_{i['game_uid']}_RESIN_NOTIFY_CNT"
+            MONEY_NOTIFY_CNT_STR = f"UID_{i['game_uid']}_MONEY_NOTIFY_CNT"
+            MONEY_THRESHOLD_NOTIFY_CNT_STR = f"UID_{i['game_uid']}_MONEY_THRESHOLD_NOTIFY_CNT"
+            TRANSFORMER_NOTIFY_CNT_STR = f"UID_{i['game_uid']}_TRANSFORMER_NOTIFY_CNT"
             RESIN_THRESHOLD_NOTIFY_CNT_STR = f"UID_{i['game_uid']}_RESIN_THRESHOLD_NOTIFY_CNT"
             RESIN_LAST_RECOVERY_TIME = f"UID_{i['game_uid']}_RESIN_LAST_RECOVERY_TIME"
             EXPEDITION_NOTIFY_CNT_STR = f"UID_{i['game_uid']}_EXPEDITION_NOTIFY_CNT"
             os.environ[IS_NOTIFY_STR] = 'False'
             os.environ[RESIN_NOTIFY_CNT_STR] = os.environ[RESIN_NOTIFY_CNT_STR] if os.environ.get(
                 RESIN_NOTIFY_CNT_STR) else '0'
+            os.environ[MONEY_NOTIFY_CNT_STR] = os.environ[MONEY_NOTIFY_CNT_STR] if os.environ.get(
+                MONEY_NOTIFY_CNT_STR) else '0'
+            os.environ[MONEY_THRESHOLD_NOTIFY_CNT_STR] = os.environ[MONEY_THRESHOLD_NOTIFY_CNT_STR] if os.environ.get(
+                MONEY_THRESHOLD_NOTIFY_CNT_STR) else '0'
+            os.environ[TRANSFORMER_NOTIFY_CNT_STR] = os.environ[TRANSFORMER_NOTIFY_CNT_STR] if os.environ.get(
+                TRANSFORMER_NOTIFY_CNT_STR) else '0'
             os.environ[RESIN_THRESHOLD_NOTIFY_CNT_STR] = os.environ[RESIN_THRESHOLD_NOTIFY_CNT_STR] if os.environ.get(
                 RESIN_THRESHOLD_NOTIFY_CNT_STR) else '0'
             os.environ[EXPEDITION_NOTIFY_CNT_STR] = os.environ[EXPEDITION_NOTIFY_CNT_STR] if os.environ.get(
@@ -440,6 +473,12 @@ def job3():
             is_do_not_disturb = time_in_range(config.RESIN_TIMER_DO_NOT_DISTURB)
             is_resin_recovery_time_changed = abs(
                 float(os.environ[RESIN_LAST_RECOVERY_TIME]) - resin_recovery_datetime.timestamp()) > 400
+            if daily_note['max_home_coin'] > 0:
+                is_home_money_threshold = daily_note['current_home_coin'] / daily_note['max_home_coin'] * 100 > config.HOME_MONEY_THRESHOLD
+                is_home_money_full = daily_note['current_home_coin'] >= daily_note['max_home_coin']
+            else:
+                is_home_money_threshold = False
+                is_home_money_full = False
 
             if is_full and is_resin_notify and not is_do_not_disturb:
                 status = '原粹树脂回满啦!'
@@ -449,6 +488,18 @@ def job3():
                 status = '原粹树脂快满啦!'
                 os.environ[IS_NOTIFY_STR] = 'True'
                 os.environ[RESIN_THRESHOLD_NOTIFY_CNT_STR] = str(int(os.environ[RESIN_THRESHOLD_NOTIFY_CNT_STR]) + 1)
+            elif is_home_money_full and int(os.environ[MONEY_NOTIFY_CNT_STR]) < 1 and not is_do_not_disturb:
+                status = '洞天宝钱满啦!'
+                os.environ[IS_NOTIFY_STR] = 'True'
+                os.environ[MONEY_NOTIFY_CNT_STR] = str(int(os.environ[MONEY_NOTIFY_CNT_STR]) + 1)
+            elif is_home_money_threshold and int(os.environ[MONEY_THRESHOLD_NOTIFY_CNT_STR]) < 1 and not is_do_not_disturb:
+                status = '洞天宝钱快满啦!'
+                os.environ[IS_NOTIFY_STR] = 'True'
+                os.environ[MONEY_THRESHOLD_NOTIFY_CNT_STR] = str(int(os.environ[MONEY_THRESHOLD_NOTIFY_CNT_STR]) + 1)
+            elif is_transformer_ready and int(os.environ[TRANSFORMER_NOTIFY_CNT_STR]) < 1 and not is_do_not_disturb:
+                status = '参量质变仪已经可以使用!'
+                os.environ[IS_NOTIFY_STR] = 'True'
+                os.environ[TRANSFORMER_NOTIFY_CNT_STR] = str(int(os.environ[TRANSFORMER_NOTIFY_CNT_STR]) + 1)
             elif is_resin_recovery_time_changed:
                 status = '原粹树脂恢复时间变动啦!'
                 os.environ[IS_NOTIFY_STR] = 'True'
@@ -478,7 +529,7 @@ def run_once():
             del os.environ[i]
 
     gh.set_lang(config.LANGUAGE)
-    job1()
+    # job1()
     if config.COOKIE_RESIN_TIMER:
         job2()
     if config.COOKIE_RESIN_TIMER_HOYOLAB:
