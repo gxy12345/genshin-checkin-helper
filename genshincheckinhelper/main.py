@@ -9,6 +9,7 @@ from collections.abc import Iterable
 from random import randint
 from time import sleep
 import datetime
+import requests
 import os
 
 import schedule
@@ -57,9 +58,26 @@ def time_in_range(interval: str):
     return result
 
 
+def push_by_pushdeer(key, title, content):
+    url = 'https://api2.pushdeer.com/message/push'
+    data = {
+        'pushkey': key,
+        'text': title,
+        'desp': content,
+        'type': 'markdown',
+    }
+    return requests.post(url, data=data)
+
+
 def notify_me(title, content):
     notifier = config.ONEPUSH.get('notifier')
     params = config.ONEPUSH.get('params')
+    if notifier == 'pushdeer':
+        key = params.get('pushdeerkey')
+        if not key:
+            log.info('cannot find pushdeer key')
+            return
+        return push_by_pushdeer(key, title, content)
     if not notifier or not params:
         log.info('No notification method configured ...')
         return
@@ -281,7 +299,11 @@ def job1():
 
     log.info('RESULT:\n' + message_box)
     if message_box != tip:
-        title = f'Genshin Impact Helper ✔ {total_success_cnt} · ✖ {total_failure_cnt}'
+        # title = f'Genshin Impact Helper ✔ {total_success_cnt} · ✖ {total_failure_cnt}'
+        if config.CUSTOMIZED_TITLE:
+            title = f'{config.CUSTOMIZED_TITLE}:签到完成 ✔ {total_success_cnt} · ✖ {total_failure_cnt}'
+        else:
+            title = f'原神小助手提醒您:签到完成 ✔ {total_success_cnt} · ✖ {total_failure_cnt}'
         is_markdown = config.ONEPUSH.get('params', {}).get('markdown')
         content = f'```\n{message_box}```' if is_markdown else message_box
         notify_me(title, content)
@@ -382,16 +404,17 @@ def job3():
     for i in get_cookies(config.COOKIE_RESIN_TIMER_HOYOLAB):
         ys = gh.Genshin(i)
         roles_info = ys.roles_info
-        expedition_fmt = '└─ {character_name:<8} {status_:^8} {remained_time_fmt}\n'
-        RESIN_TIMER_TEMPLATE = '''实时便笺
-    🔅{nickname} {level} {region_name}
-    原粹树脂: {current_resin} / {max_resin} {resin_recovery_datetime_fmt}
-    洞天宝钱: {current_home_coin} / {max_home_coin} {home_coin_recovery_datetime_fmt}
-    今日委托: {finished_task_num} / {total_task_num}
-    周本减半: {remain_resin_discount_num} / {resin_discount_num_limit}
-    参量质变: {transformer_fmt}
-    探索派遣: {current_expedition_num} / {max_expedition_num}
-      {expedition_details}'''
+        expedition_fmt = '└─ {character_name:<8} {status_:^4} {remained_time_fmt}\n'
+        RESIN_TIMER_TEMPLATE = '''
+实时便笺
+🔅{nickname} {level} {region_name}
+原粹树脂: {current_resin} / {max_resin} {resin_recovery_datetime_fmt}
+洞天宝钱: {current_home_coin} / {max_home_coin} {home_coin_recovery_datetime_fmt}
+今日委托: {finished_task_num} / {total_task_num}
+周本减半: {remain_resin_discount_num} / {resin_discount_num_limit}
+参量质变: {transformer_fmt}
+探索派遣: {current_expedition_num} / {max_expedition_num}
+  {expedition_details}'''
 
         for i in roles_info:
             daily_note = ys.get_daily_note(i['game_uid'], i['region'])
@@ -406,7 +429,7 @@ def job3():
                 e['remained_time_fmt'] = '{hour}小时{minute}分钟'.format(
                     **minutes_to_hours(remained_time / 60)) if remained_time else ''
                 e['character_name'] = e['avatar_side_icon'].split('Side_')[1].split('.')[0]
-                e['status_'] = '剩余时间' if e['status'] == 'Ongoing' else '探险完成'
+                e['status_'] = '剩余' if e['status'] == 'Ongoing' else '完成'
                 details.append(expedition_fmt.format(**e))
 
             daily_note.update(i)
@@ -436,7 +459,7 @@ def job3():
             resin_recovery_datetime = datetime.datetime.now() + datetime.timedelta(seconds=resin_recovery_time)
             daily_note[
                 'resin_recovery_datetime_fmt'] = f"将于{resin_recovery_datetime.strftime('%Y-%m-%d %H:%M:%S')}全部恢复" if resin_recovery_time else '原粹树脂已全部恢复, 记得及时使用哦'
-            daily_note['expedition_details'] = '      '.join(details)
+            daily_note['expedition_details'] = '  '.join(details)
             message = RESIN_TIMER_TEMPLATE.format(**daily_note)
             result.append(message)
             log.info(message)
@@ -520,7 +543,10 @@ def job3():
                 daily_note['expeditions']) else '0'
             os.environ[RESIN_LAST_RECOVERY_TIME] = str(resin_recovery_datetime.timestamp())
 
-            title = f'原神签到小助手提醒您: {status}'
+            if config.CUSTOMIZED_TITLE:
+                title = f'{config.CUSTOMIZED_TITLE}: {status}'
+            else:
+                title = f'原神小助手提醒您: {status}'
             log.info(title)
             if os.environ[IS_NOTIFY_STR] == 'True':
                 notify_me(title, content)
