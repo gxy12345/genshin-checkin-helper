@@ -94,24 +94,3 @@ class Genshin(Client):
             return None
         data = nested_lookup(response_json, 'data', fetch_first=True)
         return data if data else response_json
-
-
-
-# if __name__ == '__main__':
-#     log.info(_('Preparing to get Genshin daily note ...'))
-#     url = 'https://bbs-api-os.mihoyo.com/game_record/app/genshin/api/dailyNote'
-#     payload = {
-#         'role_id': 834047734,
-#         'server': 'os_asia'
-#     }
-#     from genshinhelper.utils import cookie_to_dict
-#
-#     cookie_str = "cookie_token=7wePs9s50rizPytKb4QzvlzJoO8DU6AUx17zsxq2; account_id=156448589"
-#     cookie = cookie_to_dict(cookie_str)
-#     response = request('get', url, headers=get_headers(with_ds=True, new_ds=True, params=payload), params=payload,
-#                        cookies=cookie).json()
-#     data = nested_lookup(response, 'data', fetch_first=True)
-#     if data:
-#         print(data)
-#     else:
-#         print(response)
