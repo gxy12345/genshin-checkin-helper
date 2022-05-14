@@ -6,7 +6,7 @@
 """
 
 import uuid
-
+from genshincheckinhelper.config import config
 from .exceptions import GenshinHelperException
 from .utils import request, log, get_ds, nested_lookup, extract_subset_of_dict, merge_dicts, cookie_to_dict, today, _
 
@@ -61,7 +61,7 @@ class Client(object):
             raw_roles_info = nested_lookup(response, 'list', fetch_first=True)
             self._roles_info = [
                 extract_subset_of_dict(i, self.required_keys)
-                for i in raw_roles_info
+                for i in raw_roles_info if i['region'] in config.HOYOLAB_REGION
             ]
         return self._roles_info
 

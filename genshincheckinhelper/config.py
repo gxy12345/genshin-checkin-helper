@@ -27,7 +27,8 @@ CONFIG_DICT = {
     'SHOPTOKEN': 'SHOPTOKEN',
     'ONEPUSH': 'ONEPUSH',
     'COOKIE_RESIN_TIMER_HOYOLAB': 'COOKIE_RESIN_TIMER_HOYOLAB',
-    'CUSTOMIZED_TITLE': 'CUSTOMIZED_TITLE'
+    'CUSTOMIZED_TITLE': 'CUSTOMIZED_TITLE',
+    'HOYOLAB_REGION': 'HOYOLAB_REGION'
 }
 
 
@@ -65,7 +66,8 @@ class Config(object):
             'CHECK_RESIN_SECS': 900,
             'RESIN_THRESHOLD': 150,
             'RESIN_TIMER_DO_NOT_DISTURB': '23:00-07:00',
-            'HOME_MONEY_THRESHOLD': 90
+            'HOME_MONEY_THRESHOLD': 90,
+            'HOYOLAB_REGION': ['os_asia', 'os_euro', 'os_usa']
         }
 
         for k, v in default_config_dict.items():
@@ -74,6 +76,12 @@ class Config(object):
 
         if key == 'ONEPUSH' and '{' in value:
             value = json.loads(value)
+
+        if key == 'HOYOLAB_REGION' and not isinstance(value, list):
+            try:
+                value = json.loads(value)
+            except json.decoder.JSONDecodeError:
+                value = default_config_dict['HOYOLAB_REGION']
         return value
 
 
