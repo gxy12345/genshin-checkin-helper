@@ -450,9 +450,12 @@ def job3():
                 if transformer_time['Day'] > 0:
                     daily_note['transformer_fmt'] = '参量质变仪恢复剩余时间: {}天'.format(
                         transformer_time['Day'])
+                elif transformer_time['Hour'] > 0:
+                    daily_note['transformer_fmt'] = '参量质变仪恢复剩余时间: {}小时'.format(
+                        transformer_time['Hour'])
                 else:
-                    daily_note['transformer_fmt'] = '参量质变仪恢复剩余时间: {}小时{}分钟'.format(
-                        transformer_time['Hour'], transformer_time['Minute'])
+                    daily_note['transformer_fmt'] = '参量质变仪恢复剩余时间: {}分钟'.format(
+                        transformer_time['Minute'])
                 is_transformer_ready = False
 
             resin_recovery_time = int(daily_note['resin_recovery_time'])
@@ -515,7 +518,7 @@ def job3():
                 status = '原粹树脂快满啦!'
                 os.environ[IS_NOTIFY_STR] = 'True'
                 os.environ[RESIN_THRESHOLD_NOTIFY_CNT_STR] = str(int(os.environ[RESIN_THRESHOLD_NOTIFY_CNT_STR]) + 1)
-            elif is_home_money_full and int(os.environ[MONEY_NOTIFY_CNT_STR]) < 1 and not is_do_not_disturb:
+            elif is_home_money_full and int(os.environ[MONEY_NOTIFY_CNT_STR]) < count and not is_do_not_disturb:
                 status = '洞天宝钱满啦!'
                 os.environ[IS_NOTIFY_STR] = 'True'
                 os.environ[MONEY_NOTIFY_CNT_STR] = str(int(os.environ[MONEY_NOTIFY_CNT_STR]) + 1)
@@ -523,7 +526,7 @@ def job3():
                 status = '洞天宝钱快满啦!'
                 os.environ[IS_NOTIFY_STR] = 'True'
                 os.environ[MONEY_THRESHOLD_NOTIFY_CNT_STR] = str(int(os.environ[MONEY_THRESHOLD_NOTIFY_CNT_STR]) + 1)
-            elif is_transformer_ready and int(os.environ[TRANSFORMER_NOTIFY_CNT_STR]) < 1 and not is_do_not_disturb:
+            elif is_transformer_ready and int(os.environ[TRANSFORMER_NOTIFY_CNT_STR]) < count and not is_do_not_disturb:
                 status = '参量质变仪已经可以使用!'
                 os.environ[IS_NOTIFY_STR] = 'True'
                 os.environ[TRANSFORMER_NOTIFY_CNT_STR] = str(int(os.environ[TRANSFORMER_NOTIFY_CNT_STR]) + 1)
