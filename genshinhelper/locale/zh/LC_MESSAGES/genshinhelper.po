@@ -41,6 +41,10 @@ msgstr "准备获取签到信息..."
 msgid "Preparing to get traveler's dairy ..."
 msgstr "准备获取旅行者札记..."
 
+#: genshinhelper/hoyolab.py:77
+msgid "Preparing to get Genshin daily note ..."
+msgstr "准备获取实时便笺..."
+
 #: genshinhelper/__main__.py:21
 msgid "Converting cookie to mihoyo app cookie."
 msgstr "将米游社cookie转换成米游币cookie."

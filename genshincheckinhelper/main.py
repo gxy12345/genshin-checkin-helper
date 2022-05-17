@@ -522,7 +522,7 @@ def job3():
                 status = '洞天宝钱满啦!'
                 os.environ[IS_NOTIFY_STR] = 'True'
                 os.environ[MONEY_NOTIFY_CNT_STR] = str(int(os.environ[MONEY_NOTIFY_CNT_STR]) + 1)
-            elif is_home_money_threshold and int(os.environ[MONEY_THRESHOLD_NOTIFY_CNT_STR]) < 1 and not is_do_not_disturb:
+            elif is_home_money_threshold and not is_home_money_full and int(os.environ[MONEY_THRESHOLD_NOTIFY_CNT_STR]) < 1 and not is_do_not_disturb:
                 status = '洞天宝钱快满啦!'
                 os.environ[IS_NOTIFY_STR] = 'True'
                 os.environ[MONEY_THRESHOLD_NOTIFY_CNT_STR] = str(int(os.environ[MONEY_THRESHOLD_NOTIFY_CNT_STR]) + 1)
