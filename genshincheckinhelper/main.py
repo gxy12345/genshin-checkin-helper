@@ -434,7 +434,7 @@ def job3():
                 details.append(expedition_fmt.format(**e))
 
             daily_note.update(i)
-            current_expedition_finish = len([e for e in daily_note['expeditions'] if e['status_'] ==' 完成'])
+            current_expedition_finish = len([e for e in daily_note['expeditions'] if e['status_'] =='完成'])
             log.debug("current_expedition_completed: %s" % current_expedition_finish)
             # 宝钱
             home_coin_recovery_time = int(daily_note['home_coin_recovery_time'])
