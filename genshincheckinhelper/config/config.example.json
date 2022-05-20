@@ -30,6 +30,9 @@
   ],
   "COOKIE_HOYOLAB": "",
   "COOKIE_WEIBO": "",
+  "HOYOLAB_REGION": ["os_asia", "os_euro", "os_usa"],
+  "CUSTOMIZED_TITLE": "",
+  "COOKIE_RESIN_TIMER_HOYOLAB": "",
   "COOKIE_KA": "",
   "SHOPTOKEN": "",
   "ONEPUSH": {

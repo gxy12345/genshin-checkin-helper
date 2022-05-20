@@ -32,12 +32,13 @@ banner = f'''
 +----------------------------------------------------------------+
 |               𒆙  Genshin Check-In Helper v{version}                |
 +----------------------------------------------------------------+
-Project      : genshinhelper
-Description  : More than check-in for Genshin Impact.
-PKG_Version  : {gh.__version__}
-Author       : 银弹GCell(y1ndan)
-Blog         : https://www.yindan.me
-Channel      : https://t.me/genshinhelperupdates
+Project       : genshinhelper
+Description   : More than check-in for Genshin Impact.
+PKG_Version   : {gh.__version__}
+Origin Author : 银弹GCell(y1ndan)
+Refine        : Windoge
+Blog          : https://www.yindan.me
+Channel       : https://t.me/genshinhelperupdates
 ------------------------------------------------------------------'''
 
 
@@ -433,6 +434,8 @@ def job3():
                 details.append(expedition_fmt.format(**e))
 
             daily_note.update(i)
+            current_expedition_finish = len([e for e in daily_note['expeditions'] if e['status_'] ==' 完成'])
+            log.debug("current_expedition_completed: %s" % current_expedition_finish)
             # 宝钱
             home_coin_recovery_time = int(daily_note['home_coin_recovery_time'])
             home_coin_recovery_datetime = datetime.datetime.now() + datetime.timedelta(seconds=home_coin_recovery_time)
@@ -480,6 +483,8 @@ def job3():
             RESIN_THRESHOLD_NOTIFY_CNT_STR = f"UID_{i['game_uid']}_RESIN_THRESHOLD_NOTIFY_CNT"
             RESIN_LAST_RECOVERY_TIME = f"UID_{i['game_uid']}_RESIN_LAST_RECOVERY_TIME"
             EXPEDITION_NOTIFY_CNT_STR = f"UID_{i['game_uid']}_EXPEDITION_NOTIFY_CNT"
+            EXPEDITION_LAST_FINISH_COUNT = f"UID_{i['game_uid']}EXPEDITION_LAST_FINISH_COUNT"
+
             os.environ[IS_NOTIFY_STR] = 'False'
             os.environ[RESIN_NOTIFY_CNT_STR] = os.environ[RESIN_NOTIFY_CNT_STR] if os.environ.get(
                 RESIN_NOTIFY_CNT_STR) else '0'
@@ -495,6 +500,8 @@ def job3():
                 EXPEDITION_NOTIFY_CNT_STR) else '0'
             os.environ[RESIN_LAST_RECOVERY_TIME] = os.environ[RESIN_LAST_RECOVERY_TIME] if os.environ.get(
                 RESIN_LAST_RECOVERY_TIME) else str(resin_recovery_datetime.timestamp())
+            os.environ[EXPEDITION_LAST_FINISH_COUNT] = os.environ[EXPEDITION_LAST_FINISH_COUNT] if os.environ.get(
+                EXPEDITION_LAST_FINISH_COUNT) else str(current_expedition_finish)
 
             is_full = daily_note['current_resin'] >= daily_note['max_resin']
             is_threshold = daily_note['current_resin'] >= int(config.RESIN_THRESHOLD)
@@ -503,6 +510,9 @@ def job3():
             is_do_not_disturb = time_in_range(config.RESIN_TIMER_DO_NOT_DISTURB)
             is_resin_recovery_time_changed = abs(
                 float(os.environ[RESIN_LAST_RECOVERY_TIME]) - resin_recovery_datetime.timestamp()) > 400
+
+            is_new_expedition_finished = current_expedition_finish > int(os.environ[EXPEDITION_LAST_FINISH_COUNT])
+
             if daily_note['max_home_coin'] > 0:
                 is_home_money_threshold = daily_note['current_home_coin'] / daily_note['max_home_coin'] * 100 > int(config.HOME_MONEY_THRESHOLD)
                 is_home_money_full = daily_note['current_home_coin'] >= daily_note['max_home_coin']
@@ -538,6 +548,9 @@ def job3():
                 status = '探索派遣完成啦!'
                 os.environ[IS_NOTIFY_STR] = 'True'
                 os.environ[EXPEDITION_NOTIFY_CNT_STR] = str(int(os.environ[EXPEDITION_NOTIFY_CNT_STR]) + 1)
+            elif is_new_expedition_finished:
+                log.info('检测到有新的探索已完成, 清除提醒上限')
+                os.environ[EXPEDITION_NOTIFY_CNT_STR] = '0'
 
             os.environ[RESIN_NOTIFY_CNT_STR] = os.environ[RESIN_NOTIFY_CNT_STR] if is_full else '0'
             os.environ[RESIN_THRESHOLD_NOTIFY_CNT_STR] = os.environ[
@@ -545,6 +558,7 @@ def job3():
             os.environ[EXPEDITION_NOTIFY_CNT_STR] = os.environ[EXPEDITION_NOTIFY_CNT_STR] if 'Finished' in str(
                 daily_note['expeditions']) else '0'
             os.environ[RESIN_LAST_RECOVERY_TIME] = str(resin_recovery_datetime.timestamp())
+            os.environ[EXPEDITION_LAST_FINISH_COUNT] = str(current_expedition_finish)
 
             if config.CUSTOMIZED_TITLE:
                 title = f'{config.CUSTOMIZED_TITLE}: {status}'
