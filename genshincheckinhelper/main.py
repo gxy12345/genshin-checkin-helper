@@ -8,6 +8,7 @@
 from collections.abc import Iterable
 from random import randint
 from time import sleep
+from requests.exceptions import SSLError
 import datetime
 import requests
 import os
@@ -418,7 +419,11 @@ def job3():
   {expedition_details}'''
 
         for i in roles_info:
-            daily_note = ys.get_daily_note(i['game_uid'], i['region'])
+            try:
+                daily_note = ys.get_daily_note(i['game_uid'], i['region'])
+            except SSLError:
+                log.info(f"出现网络连接问题，请检查网络, 正在跳过当前请求...")
+                continue
             if not daily_note:
                 log.info(f"未能获取 {i['nickname']} 的实时便笺, 正在跳过...")
                 continue
