@@ -9,7 +9,6 @@ from collections.abc import Iterable
 from random import randint
 from time import sleep
 from requests.exceptions import SSLError
-from genshinhelper.exceptions import GenshinHelperException
 import datetime
 import requests
 import os
@@ -18,6 +17,7 @@ import schedule
 
 try:
     import genshinhelper as gh
+    from genshinhelper.exceptions import GenshinHelperException
     from config import config
 except ImportError:
     import sys
@@ -25,6 +25,7 @@ except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(__file__)))
     import genshinhelper as gh
     from genshincheckinhelper.config import config
+    from genshinhelper.exceptions import GenshinHelperException
 finally:
     from genshinhelper.utils import log, get_cookies, nested_lookup, minutes_to_hours, MESSAGE_TEMPLATE, DAIRY_TEMPLATE, FINANCE_TEMPLATE
 from onepush import notify
@@ -408,7 +409,7 @@ def job3():
         ys = gh.Genshin(i)
         try:
             roles_info = ys.roles_info
-        except GenshinHelperException as e:
+        except Exception as e:
             log.info(f"获取账号信息失败, 错误信息: {str(e)}")
             content = f"以下cookie已失效，请检查配置\n{i}"
             notify_me("账号信息已失效", content)
