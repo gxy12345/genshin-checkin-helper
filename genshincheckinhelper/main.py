@@ -9,6 +9,7 @@ from collections.abc import Iterable
 from random import randint
 from time import sleep
 from requests.exceptions import SSLError
+from genshinhelper.exceptions import GenshinHelperException
 import datetime
 import requests
 import os
@@ -405,7 +406,13 @@ def job3():
     result = []
     for i in get_cookies(config.COOKIE_RESIN_TIMER_HOYOLAB):
         ys = gh.Genshin(i)
-        roles_info = ys.roles_info
+        try:
+            roles_info = ys.roles_info
+        except GenshinHelperException as e:
+            log.info(f"获取账号信息失败, 错误信息: {str(e)}")
+            content = f"以下cookie已失效，请检查配置\n{i}"
+            notify_me("账号信息已失效", content)
+            continue
         expedition_fmt = '└─ {character_name:<8} {status_:^4} {remained_time_fmt}\n'
         RESIN_TIMER_TEMPLATE = '''
 实时便笺
